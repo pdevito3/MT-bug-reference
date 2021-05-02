@@ -5,8 +5,6 @@ namespace TaxiDispatcher.WebApi
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using TaxiDispatcher.Infrastructure;
-    using TaxiDispatcher.Infrastructure.Seeders;
-    using TaxiDispatcher.Infrastructure.Contexts;
     using TaxiDispatcher.WebApi.Extensions;
     using Serilog;
 
@@ -43,17 +41,6 @@ namespace TaxiDispatcher.WebApi
             app.UseDeveloperExceptionPage();
 
             app.UseHttpsRedirection();
-
-            // Entity Context - Do Not Delete
-
-                using (var context = app.ApplicationServices.GetService<>())
-                {
-                    context.Database.EnsureCreated();
-
-                    //  Seeders
-
-                }
-
 
             app.UseCors("TaxiDispatcherCorsPolicy");
 
