@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace TaxiDispatcher.WebApi.Features
 {
-    public class DispatchRideByType :
+    public class DispatchRideByTypeConsumer :
         IConsumer<IRideTypeRequested>
     {
         public async Task Consume(ConsumeContext<IRideTypeRequested> context)

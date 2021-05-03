@@ -38,7 +38,7 @@ namespace TaxiDispatcher.WebApi
                     {
                         x.ConfigureConsumeTopology = false;
 
-                        x.Consumer<DispatchRideByType>();
+                        x.Consumer<DispatchRideByTypeConsumer>();
 
                         x.Bind("ridetype", s =>
                         {
