@@ -44,35 +44,11 @@
         </member>
         <member name="M:MobileApplication.WebApi.Controllers.v1.RideRequestsController.AddRideRequest(MobileApplication.Core.Dtos.RideRequest.RideRequestForCreationDto)">
             <summary>
-            Creates a new RideRequest record.
+            Make a new RideRequest for a specific ride type.
             </summary>
             <response code="201">RideRequest created.</response>
             <response code="400">RideRequest has missing/invalid values.</response>
             <response code="409">A record already exists with this primary key.</response>
-            <response code="500">There was an error on the server while creating the RideRequest.</response>
-        </member>
-        <member name="M:MobileApplication.WebApi.Controllers.v1.RideRequestsController.DeleteRideRequest(System.Guid)">
-            <summary>
-            Deletes an existing RideRequest record.
-            </summary>
-            <response code="204">RideRequest deleted.</response>
-            <response code="400">RideRequest has missing/invalid values.</response>
-            <response code="500">There was an error on the server while creating the RideRequest.</response>
-        </member>
-        <member name="M:MobileApplication.WebApi.Controllers.v1.RideRequestsController.UpdateRideRequest(System.Guid,MobileApplication.Core.Dtos.RideRequest.RideRequestForUpdateDto)">
-            <summary>
-            Updates an entire existing RideRequest.
-            </summary>
-            <response code="204">RideRequest updated.</response>
-            <response code="400">RideRequest has missing/invalid values.</response>
-            <response code="500">There was an error on the server while creating the RideRequest.</response>
-        </member>
-        <member name="M:MobileApplication.WebApi.Controllers.v1.RideRequestsController.PartiallyUpdateRideRequest(System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{MobileApplication.Core.Dtos.RideRequest.RideRequestForUpdateDto})">
-            <summary>
-            Updates specific properties on an existing RideRequest.
-            </summary>
-            <response code="204">RideRequest updated.</response>
-            <response code="400">RideRequest has missing/invalid values.</response>
             <response code="500">There was an error on the server while creating the RideRequest.</response>
         </member>
     </members>

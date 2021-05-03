@@ -15,13 +15,14 @@ namespace MobileApplication.WebApi.Controllers.v1
     using static MobileApplication.WebApi.Features.RideRequests.GetRideRequest;
     using static MobileApplication.WebApi.Features.RideRequests.AddRideRequest;
     using static MobileApplication.WebApi.Features.RideRequests.DeleteRideRequest;
-    using static MobileApplication.WebApi.Features.RideRequests.UpdateRideRequest;
-    using static MobileApplication.WebApi.Features.RideRequests.PatchRideRequest;
+    using static MobileApplication.WebApi.Features.RideRequests.MakeEcoBasedRequest;
+    using static MobileApplication.WebApi.Features.RideRequests.MakeRideTypeRequest;
+    using static MobileApplication.WebApi.Features.RideRequests.PublishSubmitOrder;
 
     [ApiController]
     [Route("api/RideRequests")]
     [ApiVersion("1.0")]
-    public class RideRequestsController: ControllerBase
+    public class RideRequestsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
@@ -29,7 +30,7 @@ namespace MobileApplication.WebApi.Controllers.v1
         {
             _mediator = mediator;
         }
-        
+
         /// <summary>
         /// Gets a list of all RideRequests.
         /// </summary>
@@ -89,7 +90,7 @@ namespace MobileApplication.WebApi.Controllers.v1
             var response = new Response<IEnumerable<RideRequestDto>>(queryResponse);
             return Ok(response);
         }
-        
+
         /// <summary>
         /// Gets a single RideRequest by ID.
         /// </summary>
@@ -110,9 +111,9 @@ namespace MobileApplication.WebApi.Controllers.v1
             var response = new Response<RideRequestDto>(queryResponse);
             return Ok(response);
         }
-        
+
         /// <summary>
-        /// Creates a new RideRequest record.
+        /// Make a new RideRequest for a specific ride type.
         /// </summary>
         /// <response code="201">RideRequest created.</response>
         /// <response code="400">RideRequest has missing/invalid values.</response>
@@ -124,11 +125,11 @@ namespace MobileApplication.WebApi.Controllers.v1
         [ProducesResponseType(500)]
         [Consumes("application/json")]
         [Produces("application/json")]
-        [HttpPost]
-        public async Task<ActionResult<RideRequestDto>> AddRideRequest([FromBody]RideRequestForCreationDto rideRequestForCreation)
+        [HttpPost("/ridetype")]
+        public async Task<ActionResult<RideRequestDto>> AddRideRequest([FromBody] RideRequestForCreationDto rideRequestForCreation)
         {
             // add error handling
-            var command = new AddRideRequestCommand(rideRequestForCreation);
+            var command = new MakeRideTypeRequestCommand(rideRequestForCreation);
             var commandResponse = await _mediator.Send(command);
             var response = new Response<RideRequestDto>(commandResponse);
 
@@ -136,66 +137,46 @@ namespace MobileApplication.WebApi.Controllers.v1
                 new { commandResponse.RideRequestId },
                 response);
         }
-        
-        /// <summary>
-        /// Deletes an existing RideRequest record.
-        /// </summary>
-        /// <response code="204">RideRequest deleted.</response>
-        /// <response code="400">RideRequest has missing/invalid values.</response>
-        /// <response code="500">There was an error on the server while creating the RideRequest.</response>
-        [ProducesResponseType(204)]
-        [ProducesResponseType(typeof(Response<>), 400)]
-        [ProducesResponseType(500)]
-        [Produces("application/json")]
-        [HttpDelete("{rideRequestId}")]
-        public async Task<ActionResult> DeleteRideRequest(Guid rideRequestId)
+
+        [HttpPost("/submit")]
+        public async Task<ActionResult<RideRequestDto>> Submit([FromBody] Submission type)
         {
             // add error handling
-            var command = new DeleteRideRequestCommand(rideRequestId);
+            var command = new PublishSubmitOrderCommand(type.CustomerType);
             await _mediator.Send(command);
 
-            return NoContent();
+            return Accepted();
         }
-        
-        /// <summary>
-        /// Updates an entire existing RideRequest.
-        /// </summary>
-        /// <response code="204">RideRequest updated.</response>
-        /// <response code="400">RideRequest has missing/invalid values.</response>
-        /// <response code="500">There was an error on the server while creating the RideRequest.</response>
-        [ProducesResponseType(204)]
-        [ProducesResponseType(typeof(Response<>), 400)]
-        [ProducesResponseType(500)]
-        [Produces("application/json")]
-        [HttpPut("{rideRequestId}")]
-        public async Task<IActionResult> UpdateRideRequest(Guid rideRequestId, RideRequestForUpdateDto rideRequest)
-        {
-            // add error handling
-            var command = new UpdateRideRequestCommand(rideRequestId, rideRequest);
-            await _mediator.Send(command);
 
-            return NoContent();
-        }
-        
-        /// <summary>
-        /// Updates specific properties on an existing RideRequest.
-        /// </summary>
-        /// <response code="204">RideRequest updated.</response>
-        /// <response code="400">RideRequest has missing/invalid values.</response>
-        /// <response code="500">There was an error on the server while creating the RideRequest.</response>
-        [ProducesResponseType(204)]
-        [ProducesResponseType(typeof(Response<>), 400)]
-        [ProducesResponseType(500)]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        [HttpPatch("{rideRequestId}")]
-        public async Task<IActionResult> PartiallyUpdateRideRequest(Guid rideRequestId, JsonPatchDocument<RideRequestForUpdateDto> patchDoc)
-        {
-            // add error handling
-            var command = new PatchRideRequestCommand(rideRequestId, patchDoc);
-            await _mediator.Send(command);
+        ///// <summary>
+        ///// Creates a new RideRequest record.
+        ///// </summary>
+        ///// <response code="201">RideRequest created.</response>
+        ///// <response code="400">RideRequest has missing/invalid values.</response>
+        ///// <response code="409">A record already exists with this primary key.</response>
+        ///// <response code="500">There was an error on the server while creating the RideRequest.</response>
+        //[ProducesResponseType(typeof(Response<RideRequestDto>), 201)]
+        //[ProducesResponseType(typeof(Response<>), 400)]
+        //[ProducesResponseType(typeof(Response<>), 409)]
+        //[ProducesResponseType(500)]
+        //[Consumes("application/json")]
+        //[Produces("application/json")]
+        //[HttpPost("/eco")]
+        //public async Task<ActionResult<RideRequestDto>> MakeEcoBasedRequest([FromBody] RideRequestForCreationDto rideRequestForCreation)
+        //{
+        //    // add error handling
+        //    var command = new MakeEcoBasedRequestCommand(rideRequestForCreation);
+        //    var commandResponse = await _mediator.Send(command);
+        //    var response = new Response<RideRequestDto>(commandResponse);
 
-            return NoContent();
-        }
+        //    return CreatedAtRoute("GetRideRequest",
+        //        new { commandResponse.RideRequestId },
+        //        response);
+        //}
+    }
+
+    public class Submission
+    {
+        public string CustomerType { get; set; } = "PRIORITY";
     }
 }

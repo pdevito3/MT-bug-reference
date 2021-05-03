@@ -7,6 +7,7 @@ namespace MobileApplication.Core.Dtos.RideRequest
     public class RideRequestForCreationDto : RideRequestForManipulationDto
     {
         public Guid RideRequestId { get; set; } = Guid.NewGuid();
+        public override string RideType { get; set; } = "small";
 
         // add-on property marker - Do Not Delete This Comment
     }

@@ -9,6 +9,9 @@ namespace MobileApplication.WebApi
     using MobileApplication.Infrastructure.Contexts;
     using MobileApplication.WebApi.Extensions;
     using Serilog;
+    using MassTransit;
+    using RabbitMQ.Client;
+    using Messages;
 
     public class StartupDevelopment
     {
@@ -27,6 +30,35 @@ namespace MobileApplication.WebApi
         {
             services.AddCorsService("MobileApplicationCorsPolicy");
             services.AddInfrastructure(_config, _env);
+
+            services.AddMassTransit(mt =>
+            {
+                mt.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Send<IRideTypeRequested>(e =>
+                    {
+                        // use ride typoe for the routing key
+                        e.UseRoutingKeyFormatter(context => context.Message.RideType.ToString());
+                    });
+                    cfg.Message<IRideTypeRequested>(e => e.SetEntityName("ridetype")); // name of exchange
+                    cfg.Publish<IRideTypeRequested>(e => e.ExchangeType = ExchangeType.Direct); // exchange type
+
+                    cfg.Send<ISubmitOrder>(x =>
+                    {
+                        // use customerType for the routing key
+                        x.UseRoutingKeyFormatter(context => context.Message.CustomerType.ToString());
+                    });
+                    //Keeping in mind that the default exchange config for your published type will be the full typename of your message
+                    //we explicitly specify which exchange the message will be published to. So it lines up with the exchange we are binding our
+                    //consumers too.
+                    cfg.Message<ISubmitOrder>(x => x.SetEntityName("submitorder"));
+                    //Also if your publishing your message: because publishing a message will, by default, send it to a fanout queue.
+                    //We specify that we are sending it to a direct queue instead. In order for the routingkeys to take effect.
+                    cfg.Publish<ISubmitOrder>(x => x.ExchangeType = ExchangeType.Direct);
+                });
+            });
+            services.AddMassTransitHostedService();
+
             services.AddControllers()
                 .AddNewtonsoftJson();
             services.AddApiVersioningExtension();
@@ -46,14 +78,13 @@ namespace MobileApplication.WebApi
 
             // Entity Context - Do Not Delete
 
-                using (var context = app.ApplicationServices.GetService<MobileApplicationDbContext>())
-                {
-                    context.Database.EnsureCreated();
+            using (var context = app.ApplicationServices.GetService<MobileApplicationDbContext>())
+            {
+                context.Database.EnsureCreated();
 
-                    // MobileApplicationDbContext Seeders
-                    RideRequestSeeder.SeedSampleRideRequestData(app.ApplicationServices.GetService<MobileApplicationDbContext>());
-                }
-
+                // MobileApplicationDbContext Seeders
+                RideRequestSeeder.SeedSampleRideRequestData(app.ApplicationServices.GetService<MobileApplicationDbContext>());
+            }
 
             app.UseCors("MobileApplicationCorsPolicy");
 

@@ -7,6 +7,10 @@ namespace TaxiDispatcher.WebApi
     using TaxiDispatcher.Infrastructure;
     using TaxiDispatcher.WebApi.Extensions;
     using Serilog;
+    using MassTransit;
+    using Messages;
+    using RabbitMQ.Client;
+    using TaxiDispatcher.WebApi.Features;
 
     public class StartupDevelopment
     {
@@ -25,6 +29,41 @@ namespace TaxiDispatcher.WebApi
         {
             services.AddCorsService("TaxiDispatcherCorsPolicy");
             services.AddInfrastructure(_config, _env);
+
+            services.AddMassTransit(mt =>
+            {
+                mt.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.ReceiveEndpoint("small-vehicles", x =>
+                    {
+                        x.ConfigureConsumeTopology = false;
+
+                        x.Consumer<DispatchRideByType>();
+
+                        x.Bind("ridetype", s =>
+                        {
+                            s.RoutingKey = "SMALL";
+                            s.ExchangeType = ExchangeType.Direct;
+                        });
+                        //x.Bind<IRideTypeRequested>();
+                    });
+
+                    cfg.ReceiveEndpoint("priority-orders", x =>
+                    {
+                        x.ConfigureConsumeTopology = false;
+
+                        x.Consumer<OrderConsumer>();
+
+                        x.Bind("submitorder", s =>
+                        {
+                            s.RoutingKey = "PRIORITY";
+                            s.ExchangeType = ExchangeType.Direct;
+                        });
+                    });
+                });
+            });
+            services.AddMassTransitHostedService();
+
             services.AddControllers()
                 .AddNewtonsoftJson();
             services.AddApiVersioningExtension();
